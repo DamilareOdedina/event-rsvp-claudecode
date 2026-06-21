@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Event RSVP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 520px;
+      overflow: hidden;
+    }
+
+    .event-header {
+      background: #2c3e8c;
+      color: #fff;
+      padding: 36px 32px;
+    }
+
+    .event-header h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.2;
+    }
+
+    .event-meta {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      opacity: 0.92;
+    }
+
+    .meta-item svg {
+      flex-shrink: 0;
+      opacity: 0.8;
+    }
+
+    .form-section {
+      padding: 32px;
+    }
+
+    .form-section h2 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 24px;
+      color: #2c3e8c;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #555;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #2c3e8c;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background: #2c3e8c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    button[type="submit"]:hover {
+      background: #1e2e6e;
+    }
+
+    .confirmation {
+      display: none;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .confirmation.visible {
+      display: block;
+    }
+
+    .check-circle {
+      width: 64px;
+      height: 64px;
+      background: #e8f5e9;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+    }
+
+    .confirmation h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #2c3e8c;
+      margin-bottom: 8px;
+    }
+
+    .confirmation p {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .confirmation .guest-name {
+      font-weight: 600;
+      color: #1a1a1a;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="event-header">
+    <h1>Annual Tech & Innovation Summit 2026</h1>
+    <div class="event-meta">
+      <div class="meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Saturday, August 15, 2026
+      </div>
+      <div class="meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        10:00 AM – 5:00 PM
+      </div>
+      <div class="meta-item">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        The Grand Hall, 45 Innovation Drive, Lagos
+      </div>
+    </div>
+  </div>
+
+  <div class="form-section" id="rsvp-form-section">
+    <h2>Reserve your spot</h2>
+    <form id="rsvp-form" novalidate>
+      <label for="name">Full name</label>
+      <input type="text" id="name" name="name" placeholder="Jane Doe" required />
+
+      <label for="email">Email address</label>
+      <input type="email" id="email" name="email" placeholder="jane@example.com" required />
+
+      <button type="submit">Confirm my RSVP</button>
+    </form>
+  </div>
+
+  <div class="confirmation" id="confirmation">
+    <div class="check-circle">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    </div>
+    <h2>You're on the list!</h2>
+    <p>Thanks, <span class="guest-name" id="confirmed-name"></span>. We've received your RSVP and a confirmation will be sent to <span class="guest-name" id="confirmed-email"></span>.</p>
+    <p style="margin-top:12px;">See you on August 15!</p>
+  </div>
+</div>
+
+<script>
+  document.getElementById('rsvp-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+
+    if (!name || !email) return;
+
+    document.getElementById('confirmed-name').textContent = name;
+    document.getElementById('confirmed-email').textContent = email;
+
+    document.getElementById('rsvp-form-section').style.display = 'none';
+    document.getElementById('confirmation').classList.add('visible');
+  });
+</script>
+
+</body>
+</html>
