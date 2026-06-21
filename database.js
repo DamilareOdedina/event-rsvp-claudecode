@@ -24,4 +24,10 @@ db.exec(`
   );
 `);
 
+// Migrate existing rsvps tables that pre-date the plus_one column.
+// ALTER TABLE errors if the column already exists; that's fine — ignore it.
+try {
+  db.exec(`ALTER TABLE rsvps ADD COLUMN plus_one INTEGER NOT NULL DEFAULT 0 CHECK (plus_one IN (0, 1))`);
+} catch { /* column already present */ }
+
 module.exports = db;
