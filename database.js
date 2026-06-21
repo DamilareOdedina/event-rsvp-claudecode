@@ -19,6 +19,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS rsvps (
     id         INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id    INTEGER NOT NULL UNIQUE REFERENCES users(id),
+    plus_one   INTEGER NOT NULL DEFAULT 0 CHECK (plus_one IN (0, 1)),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);

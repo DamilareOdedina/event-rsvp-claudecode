@@ -74,13 +74,14 @@ app.post('/api/auth/login', (req, res) => {
 
 app.post('/api/rsvp', requireAuth, async (req, res) => {
   const { id, name, email } = req.user;
+  const plusOne = req.body.plusOne ? 1 : 0;
 
   const existing = db.prepare('SELECT id FROM rsvps WHERE user_id = ?').get(id);
   if (existing) return res.status(409).json({ error: 'You have already RSVPed' });
 
-  db.prepare('INSERT INTO rsvps (user_id) VALUES (?)').run(id);
+  db.prepare('INSERT INTO rsvps (user_id, plus_one) VALUES (?, ?)').run(id, plusOne);
 
-  const { count } = db.prepare('SELECT COUNT(*) as count FROM rsvps').get();
+  const { count } = db.prepare('SELECT SUM(1 + plus_one) as count FROM rsvps').get();
 
   // Send confirmation email (non-blocking — don't fail the response if email fails)
   if (resend) {
@@ -96,7 +97,7 @@ app.post('/api/rsvp', requireAuth, async (req, res) => {
             </div>
             <div style="background:#f9f9f9;padding:32px;border-radius:0 0 8px 8px;border:1px solid #eee;border-top:none">
               <p style="font-size:1rem">Hi <strong>${name}</strong>,</p>
-              <p>Your RSVP is confirmed! We're looking forward to seeing you.</p>
+              <p>Your RSVP is confirmed! We're looking forward to seeing you${plusOne ? ' and your guest' : ''}.</p>
               <table style="margin:24px 0;width:100%;border-collapse:collapse">
                 <tr><td style="padding:8px 0;color:#555;width:90px">Date</td><td><strong>Saturday, August 15, 2026</strong></td></tr>
                 <tr><td style="padding:8px 0;color:#555">Time</td><td><strong>10:00 AM – 5:00 PM</strong></td></tr>
@@ -114,13 +115,13 @@ app.post('/api/rsvp', requireAuth, async (req, res) => {
 });
 
 app.get('/api/rsvp/status', requireAuth, (req, res) => {
-  const row = db.prepare('SELECT id FROM rsvps WHERE user_id = ?').get(req.user.id);
-  res.json({ hasRsvped: !!row });
+  const row = db.prepare('SELECT plus_one FROM rsvps WHERE user_id = ?').get(req.user.id);
+  res.json({ hasRsvped: !!row, plusOne: row ? !!row.plus_one : false });
 });
 
 app.get('/api/attendee-count', (req, res) => {
-  const { count } = db.prepare('SELECT COUNT(*) as count FROM rsvps').get();
-  res.json({ count });
+  const { count } = db.prepare('SELECT SUM(1 + plus_one) as count FROM rsvps').get();
+  res.json({ count: count || 0 });
 });
 
 // ── Catch-all: serve the SPA ─────────────────────────────────────────────────

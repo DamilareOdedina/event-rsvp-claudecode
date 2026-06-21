@@ -178,6 +178,48 @@
 
     .btn-link:hover { text-decoration: underline; }
 
+    /* ── +1 toggle ── */
+    .plus-one-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 14px 16px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .plus-one-row:hover { border-color: #2c3e8c; background: #f7f8ff; }
+    .plus-one-row.checked { border-color: #2c3e8c; background: #f0f3ff; }
+
+    .plus-one-row input[type="checkbox"] { display: none; }
+
+    .checkbox-box {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .plus-one-row.checked .checkbox-box {
+      background: #2c3e8c;
+      border-color: #2c3e8c;
+    }
+
+    .checkbox-box svg { display: none; }
+    .plus-one-row.checked .checkbox-box svg { display: block; }
+
+    .plus-one-label { font-size: 0.95rem; line-height: 1.4; }
+    .plus-one-label small { display: block; color: #888; font-size: 0.8rem; margin-top: 2px; }
+
     /* ── Confirmation ── */
     .confirmation {
       padding: 36px 32px;
@@ -280,9 +322,21 @@
   <div class="section hidden" id="rsvp-panel">
     <h2>Reserve your spot</h2>
     <div id="rsvp-error-box" class="error-msg"></div>
-    <p style="color:#555;font-size:0.95rem;margin-bottom:24px">
-      You're logged in and ready to RSVP. Hit the button below to confirm your attendance.
+    <p style="color:#555;font-size:0.95rem;margin-bottom:20px">
+      You're logged in and ready to RSVP. Confirm your attendance below.
     </p>
+
+    <label class="plus-one-row" id="plus-one-row" onclick="togglePlusOne()">
+      <input type="checkbox" id="plus-one-checkbox" />
+      <span class="checkbox-box">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </span>
+      <span class="plus-one-label">
+        I'm bringing a +1
+        <small>One additional guest — no separate registration needed</small>
+      </span>
+    </label>
+
     <button class="btn-primary" id="rsvp-btn" onclick="handleRsvp()">Confirm my RSVP</button>
   </div>
 
@@ -292,7 +346,7 @@
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4caf50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
     </div>
     <h2>You're on the list!</h2>
-    <p>Your RSVP is confirmed. A confirmation email is on its way to you.</p>
+    <p id="confirmation-msg">Your RSVP is confirmed. A confirmation email is on its way to you.</p>
     <p style="margin-top:10px">See you on August 15!</p>
   </div>
 
@@ -316,12 +370,12 @@
     try {
       const res = await apiFetch('/api/rsvp/status');
       if (!res.ok) { clearAuth(); return; }
-      const { hasRsvped } = await res.json();
+      const { hasRsvped, plusOne } = await res.json();
 
       // Decode name from token (it's a JWT — payload is public)
       const payload = JSON.parse(atob(token.split('.')[1]));
       currentUser = { name: payload.name };
-      showLoggedIn(currentUser.name, hasRsvped);
+      showLoggedIn(currentUser.name, hasRsvped, plusOne);
     } catch {
       clearAuth();
     }
@@ -335,6 +389,14 @@
       const { count } = await res.json();
       document.getElementById('attendee-count').textContent = count;
     } catch { /* network blip — ignore */ }
+  }
+
+  // ── +1 toggle ─────────────────────────────────────────────────────────────
+
+  function togglePlusOne() {
+    const row = document.getElementById('plus-one-row');
+    row.classList.toggle('checked');
+    document.getElementById('plus-one-checkbox').checked = row.classList.contains('checked');
   }
 
   // ── Auth tab toggle ───────────────────────────────────────────────────────
@@ -417,7 +479,8 @@
     btn.textContent = 'Confirming…';
     document.getElementById('rsvp-error-box').classList.remove('visible');
 
-    const res = await apiFetch('/api/rsvp', {});
+    const plusOne = document.getElementById('plus-one-checkbox').checked;
+    const res = await apiFetch('/api/rsvp', { plusOne });
     const data = await res.json();
 
     if (!res.ok) {
@@ -429,18 +492,26 @@
     }
 
     document.getElementById('attendee-count').textContent = data.attendeeCount;
+    setConfirmationMsg(plusOne);
     show('confirmation');
     hide('rsvp-panel');
   }
 
   // ── UI helpers ────────────────────────────────────────────────────────────
 
-  function showLoggedIn(name, hasRsvped) {
+  function setConfirmationMsg(plusOne) {
+    document.getElementById('confirmation-msg').textContent = plusOne
+      ? 'Your RSVP is confirmed for you and your guest. A confirmation email is on its way to you.'
+      : 'Your RSVP is confirmed. A confirmation email is on its way to you.';
+  }
+
+  function showLoggedIn(name, hasRsvped, plusOne = false) {
     document.getElementById('user-name-display').textContent = name;
     show('user-bar');
     hide('auth-panel');
 
     if (hasRsvped) {
+      setConfirmationMsg(plusOne);
       show('confirmation');
     } else {
       show('rsvp-panel');
